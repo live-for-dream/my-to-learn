@@ -1,0 +1,148 @@
+.\" Copyright (C) 2005, 2006 NTT Corporation"
+.TH TCPCP_STOP 3 2006-03-10 "TCPCP2 1.0" "Manual of TCPCP2"
+
+.SH NAME
+tcpcp_stop \- stop the connected TCP socket from sending and receiving packets
+
+.SH SYNOPSIS
+.PD 0
+
+.HP
+.B #include <tcpcp.h>
+
+.sp
+
+.HP
+.B int tcpcp_stop(int
+.IB fd ,
+.B int
+.IB flag ,
+.B struct result_list
+.BI ** reslst );
+
+.PD
+.SH DESCRIPTION
+
+The function
+.BR tcpcp_stop ()
+is an API for TCPCP2.
+
+.LP
+If the value of the argument
+.I flag
+is
+.BR TCPCP_EXEC_ONE ,
+.BR tcpcp_stop ()
+stops the connected TCP socket
+.I fd
+from sending and receiving packets.
+
+.LP
+If the value of
+.I flag
+is
+.BR TCPCP_EXEC_ALL ,
+.BR tcpcp_stop ()
+stops all connected TCP sockets of the calling process from sending and
+receiving packets.  In this case, you must create a dummy socket
+.I fd
+before calling
+.BR tcpcp_stop ().
+
+.LP
+In either case,
+.BR tcpcp_stop ()
+returns a malloc'ed Processing Result List
+.IR reslst .
+
+.PD 0
+.RS .5i
+.nf
+struct result_list {
+    unsigned int fd_all;  /* The number of target sockets. */
+    unsigned int fd_ng;   /* The number of failed sockets. */
+    struct fdr fdrs[0];
+};
+
+struct fdr {
+    int fd;               /* Socket descriptor. */
+    int result;           /* On success, zero is set.
+                           * On failure, errno is set. */
+};
+.fi
+.RE
+.PD
+
+.LP
+The socket, which has stopped sending and receiving packets, can resume
+sending and receiving them by calling the function
+.BR tcpcp_start ().
+
+.SH "RETURN VALUE"
+
+If
+.BR tcpcp_stop ()
+succeeds,
+.B TCPCP_RET_OK
+is returned.  Otherwise,
+.B TCPCP_RET_NG
+is returned and error number
+.I errno
+is set appropriately.
+
+.SH ERRORS
+
+.TP
+.B EINVAL
+The argument
+.I flag
+is neither
+.B TCPCP_EXEC_ONE
+nor
+.BR TCPCP_EXEC_ALL .
+
+.TP
+.B ENOSYS
+The system cannot link a kernel module of TCPCP2.
+
+.TP
+.B EBADF
+The argument
+.I fd
+is an invalid descriptor.
+
+.TP
+.B ENOTSOCK
+The argument
+.I fd
+is a file, not a socket.
+
+.TP
+.B EPFNOSUPPORT
+The socket family is neither IPv4 nor IPv6.
+
+.TP
+.B ESOCKTNOSUPPORT
+The socket type is not byte stream.
+
+.TP
+.B EPROTONOSUPPORT
+The protocol type of the socket is not TCP.
+
+.TP
+.B EBADFD
+The socket is not connected.
+
+.TP
+.B EBUSY
+The socket is currently locked.
+
+.TP
+.B EFAULT
+The argument
+.I reslst
+is an invalid pointer.
+
+.TP
+.B ENOMEM
+Out of memory.

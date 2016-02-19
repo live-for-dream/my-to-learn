@@ -1,0 +1,151 @@
+.\" Copyright (C) 2005, 2006 NTT Corporation"
+.TH TCPCP_START 3 2006-03-10 "TCPCP2 1.0" "Manual of TCPCP2"
+
+.SH NAME
+tcpcp_start \- allow the TCP socket to resume sending and receiving packets
+
+.SH SYNOPSIS
+.PD 0
+
+.HP
+.B #include <tcpcp.h>
+
+.sp
+
+.HP
+.B int tcpcp_start(int
+.IB fd ,
+.B int
+.IB flag ,
+.B struct result_list
+.BI ** reslst );
+
+.PD
+.SH DESCRIPTION
+
+The function
+.BR tcpcp_start ()
+is an API for TCPCP2.
+
+.LP
+If the value of the argument
+.I flag
+is
+.BR TCPCP_EXEC_ONE ,
+then the TCP socket
+.IR fd ,
+which has stopped sending and receiving packets because either function
+.BR tcpcp_set_si ()
+or
+.BR tcpcp_stop ()
+was called, can resume sending and receiving them.
+
+.LP
+If the value of
+.I flag
+is
+.BR TCPCP_EXEC_ALL ,
+all TCP sockets of the calling process can resume sending and receiving
+packets. In this case, you must create a dummy socket
+.I fd
+before calling
+.BR tcpcp_start ().
+
+.LP
+In either case,
+.BR tcpcp_start ()
+returns a malloc'ed Processing Result List
+.IR reslst .
+
+.PD 0
+.RS .5i
+.nf
+struct result_list {
+    unsigned int fd_all;  /* The number of target sockets. */
+    unsigned int fd_ng;   /* The number of failed sockets. */
+    struct fdr fdrs[0];
+};
+
+struct fdr {
+    int fd;               /* Socket descriptor. */
+    int result;           /* On success, zero is set.
+                           * On failure, errno is set. */
+};
+.fi
+.RE
+.PD
+
+.LP
+.SH "RETURN VALUE"
+
+If
+.BR tcpcp_start ()
+succeeds,
+.B TCPCP_RET_OK
+is returned.  Otherwise,
+.B TCPCP_RET_NG
+is returned and error number
+.I errno
+is set appropriately.
+
+.SH ERRORS
+
+.TP
+.B EINVAL
+The argument
+.I flag
+is neither
+.B TCPCP_EXEC_ONE
+nor
+.BR TCPCP_EXEC_ALL .
+
+.TP
+.B ENOSYS
+The system cannot link a kernel module of TCPCP2.
+
+.TP
+.B EBADF
+The argument
+.I fd
+is an invalid descriptor.
+
+.TP
+.B ENOTSOCK
+The argument
+.I fd
+is a file, not a socket.
+
+.TP
+.B EPFNOSUPPORT
+The socket family is neither IPv4 nor IPv6.
+
+.TP
+.B ESOCKTNOSUPPORT
+The socket type is not byte stream.
+
+.TP
+.B EPROTONOSUPPORT
+The protocol type of the socket is not TCP.
+
+.TP
+.B EBUSY
+The socket is currently locked.
+
+.TP
+.B ENODEV
+You try call
+.BR tcpcp_start ()
+for the TCP/IPv6 socket, for which has be set the TCP-SI containing a
+link-local address by calling
+.BR tcpcp_set_si (),
+but the device that the socket attempts to use does not exist.
+
+.TP
+.B EFAULT
+The argument
+.I reslst
+is an invalid pointer.
+
+.TP
+.B ENOMEM
+Out of memory.

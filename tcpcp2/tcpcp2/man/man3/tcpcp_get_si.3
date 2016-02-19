@@ -1,0 +1,263 @@
+.\" Copyright (C) 2005, 2006 NTT Corporation"
+.TH TCPCP_GET_SI 3 2006-03-10 "TCPCP2 1.0" "Manual of TCPCP2"
+
+.SH NAME
+tcpcp_get_si \- retrieve the TCP socket information (TCP-SI)
+
+.SH SYNOPSIS
+.PD 0
+
+.HP
+.B #include <tcpcp.h>
+
+.sp
+
+.HP
+.B int tcpcp_get_si(int
+.IB fd ,
+.B int
+.IB flag ,
+.B void
+.BI ** bufptr ,
+.B unsigned int
+.BI * size ,
+.B struct result_list
+.BI ** reslst );
+
+.PD
+.SH DESCRIPTION
+
+The function
+.BR tcpcp_get_si ()
+is an API for TCPCP2.
+
+.LP
+If the value of the argument
+.I flag
+is
+.BR TCPCP_EXEC_ONE ,
+you can retrieve the TCP-SI of the connected TCP socket
+.IR fd .
+
+.LP
+If the value of
+.I flag
+is
+.BR TCPCP_EXEC_ALL ,
+you can retrieve the TCP-SIs of all connected TCP sockets of a calling process. In
+this case, you must create a dummy socket
+.I fd
+before calling
+.BR tcpcp_get_si ().
+
+.LP
+In either case,
+.BR tcpcp_get_si ()
+returns the following values:
+
+.IP \- 3
+malloc'ed TCP-SI
+.I bufptr
+
+.IP \- 3
+size of TCP-SI
+
+.IP \- 3
+malloc'ed Processing Result List
+.I reslst
+
+.PP
+.PD 0
+.RS .5i
+.nf
+struct result_list {
+    unsigned int fd_all;  /* The number of target sockets. */
+    unsigned int fd_ng;   /* The number of failed sockets. */
+    struct fdr fdrs[0];
+};
+
+struct fdr {
+    int fd;               /* Socket descriptor. */
+    int result;           /* On success, zero is set.
+                           * On failure, errno is set. */
+};
+.fi
+.RE
+.PD
+
+.LP
+TCP-SI contains the following information:
+
+.IP \- 3
+connection identifier
+.RS
+.IP \- 3
+IP version (4 or 6)
+.IP \- 3
+source/destination IP address
+.IP \- 3
+source/destination TCP port number
+.RE
+
+.IP \- 3
+sequence number
+.RS
+.IP \- 3
+sequence number of next new byte to send
+.IP \- 3
+sequence number of next new byte expected
+.IP \- 3
+window received from peer
+.IP \- 3
+window advertised to peer
+.IP \- 3
+send window scale
+.IP \- 3
+receive window scale
+.RE
+
+.IP \- 3
+timestamp
+.RS
+.IP \- 3
+cached timestamp from peer
+.IP \- 3
+current locally generated timestamp
+.RE
+
+.IP \- 3
+options on socket
+.RS
+
+.IP \- 3
+socket level
+.RS
+.IP \- 3
+protocol-defined priority for all packets to be sent
+.IP \- 3
+size of socket send buffer in bytes
+.IP \- 3
+size of socket receive buffer in bytes
+.IP \- 3
+how long it should linger
+.RE
+
+.IP \- 3
+IPv4 level
+.RS
+.IP \- 3
+unicast TTL
+.IP \- 3
+Path MTU Discovery setting
+.IP \- 3
+TOS
+.IP \- 3
+IP options to be sent
+.RE
+
+.IP \- 3
+IPv6 level
+.RS
+.IP \- 3
+unicast hop limit
+.IP \- 3
+Path MTU Discovery setting
+.RE
+
+.IP \- 3
+TCP level
+.RS
+.IP \- 3
+state of Nagle algorithm
+.IP \- 3
+number of allowed keep-alive probes
+.IP \- 3
+time before keep-alive takes place
+.IP \- 3
+time interval between keep-alive probes
+.RE
+
+.RE
+
+.IP \- 3
+TCP packets in socket send buffer and socket receive buffer
+.RS
+.IP \- 3
+flags of TCP header
+.IP \- 3
+sequence number of first byte
+.IP \- 3
+data
+.RE
+
+.PP
+.SH "RETURN VALUE"
+
+If
+.BR tcpcp_get_si ()
+succeeds,
+.B TCPCP_RET_OK
+is returned.  Otherwise,
+.B TCPCP_RET_NG
+is returned and error number
+.I errno
+is set appropriately.
+
+.SH ERRORS
+
+.TP
+.B EINVAL
+The argument
+.I flag
+is neither
+.B TCPCP_EXEC_ONE
+nor
+.BR TCPCP_EXEC_ALL .
+
+.TP
+.B ENOSYS
+The system cannot link a kernel module of TCPCP2.
+
+.TP
+.B EBADF
+The argument
+.I fd
+is an invalid descriptor.
+
+.TP
+.B ENOTSOCK
+The argument
+.I fd
+is a file, not a socket.
+
+.TP
+.B EPFNOSUPPORT
+The socket family is neither IPv4 nor IPv6.
+
+.TP
+.B ESOCKTNOSUPPORT
+The socket type is not byte stream.
+
+.TP
+.B EPROTONOSUPPORT
+The protocol type of the socket is not TCP.
+
+.TP
+.B EBADFD
+The socket is not connected.
+
+.TP
+.B EBUSY
+The socket is currently locked.
+
+.TP
+.B EFAULT
+Either argument
+.I bufptr
+or
+.I reslst
+is an invalid pointer.
+
+.TP
+.B ENOMEM
+Out of memory.

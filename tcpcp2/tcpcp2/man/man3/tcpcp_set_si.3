@@ -1,0 +1,168 @@
+.\" Copyright (C) 2005, 2006 NTT Corporation"
+.TH TCPCP_SET_SI 3 2006-03-10 "TCPCP2 1.0" "Manual of TCPCP2"
+
+.SH NAME
+tcpcp_set_si \- set the TCP socket information (TCP-SI) in an unconnected TCP
+socket
+
+.SH SYNOPSIS
+.PD 0
+
+.HP
+.B #include <tcpcp.h>
+
+.sp
+
+.HP
+.B int tcpcp_set_si(int
+.IB fd ,
+.B int
+.IB flag ,
+.B const void
+.BI ** bufptr ,
+.B unsigned int
+.BI * size ,
+.B struct result_list
+.BI ** reslst );
+
+.PD
+.SH DESCRIPTION
+
+The function
+.BR tcpcp_set_si ()
+is an API for TCPCP2.
+
+.LP
+If the value of the argument
+.I flag
+is
+.BR TCPCP_EXEC_ONE ,
+you can set the TCP-SI, which has retrieved by calling the function
+.BR tcpcp_get_si ()
+with the value
+.B TCPCP_EXEC_ONE
+of
+.IR flag ,
+in the unconnected TCP socket
+.IR fd .
+In this case, you must create
+.I fd
+before calling
+.BR tcpcp_set_si ().
+
+.LP
+If the value of
+.I flag
+is
+.BR TCPCP_EXEC_ALL ,
+you can create unconnected TCP sockets and set their TCP-SIs, which were
+retrieved by calling
+.BR tcpcp_get_si ()
+with the value
+.B TCPCP_EXEC_ALL
+of
+.IR flag ,
+in these sockets.  In this case, you must create a dummy socket fd before
+calling
+.BR tcpcp_set_si ().
+
+.LP
+In either case, you must set TCP-SI
+.I bufptr
+and the size of it.
+
+.LP
+.BR tcpcp_set_si ()
+returns a malloc'ed Processing Result List
+.IR reslst .
+
+.PP
+.PD 0
+.RS .5i
+.nf
+struct result_list {
+    unsigned int fd_all;  /* The number of target sockets. */
+    unsigned int fd_ng;   /* The number of failed sockets. */
+    struct fdr fdrs[0];
+};
+
+struct fdr {
+    int fd;      /* Socket descriptor. */
+    int result;  /* On success, a new socket descriptor is set.
+                    On failure, errno is set. */
+};
+.fi
+.RE
+.PD
+
+.LP
+.SH "RETURN VALUE"
+
+If
+.BR tcpcp_set_si ()
+succeeds,
+.B TCPCP_RET_OK
+is returned.  Otherwise,
+.B TCPCP_RET_NG
+is returned and error number
+.I errno
+is set appropriately.
+
+.SH ERRORS
+
+.TP
+.B EINVAL
+The argument
+.I flag
+is neither
+.B TCPCP_EXEC_ONE
+nor
+.BR TCPCP_EXEC_ALL .
+
+.TP
+.B ENOSYS
+The system cannot link a kernel module of TCPCP2.
+
+.TP
+.B EBADF
+The argument
+.I fd
+is an invalid descriptor.
+
+.TP
+.B ENOTSOCK
+The argument
+.I fd
+is a file, not a socket.
+
+.TP
+.B EPFNOSUPPORT
+The socket family is neither IPv4 nor IPv6.
+
+.TP
+.B ESOCKTNOSUPPORT
+The socket type is not byte stream.
+
+.TP
+.B EPROTONOSUPPORT
+The protocol type of the socket is not TCP.
+
+.TP
+.B EBADFD
+The socket is connected.
+
+.TP
+.B EBUSY
+The socket is currently locked.
+
+.TP
+.B EFAULT
+Either argument
+.I bufptr
+or
+.I reslst
+is an invalid pointer.
+
+.TP
+.B ENOMEM
+Out of memory.

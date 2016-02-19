@@ -1,0 +1,13 @@
+#
+# Base directory under which bin/, include/, and lib/ are used for installation
+#
+
+INSTPREFIX=
+HINSTPREFIX=/usr/local
+
+#
+# Version of libtcpcp.so
+#
+
+LIBVERSION=0.0
+
